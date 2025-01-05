@@ -126,12 +126,12 @@ if __name__ == "__main__":
     model_spec = {
         'name': 'edsr',
         'args': {
-            # 'n_resblock': 32,
-            # 'n_feats': 256,
-            # 'res_scale': 0.1,
-            # 'scale': 2,
-            # 'no_upsampling': False,
-            # 'rgb_range': 1
+            'n_resblock': 32,
+            'n_feats': 256,
+            'res_scale': 0.1,
+            'scale': 2,
+            'no_upsampling': False,
+            'rgb_range': 1
         },
         'sd': None
     }
