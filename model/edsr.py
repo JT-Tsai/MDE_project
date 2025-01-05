@@ -42,15 +42,20 @@ class EDSR(nn.Module):
         ]
         m_body.append(conv(n_feats, n_feats, kernel_size))
 
-        # define tail module
-        m_tail = [
-            common.Upsampler(conv, scale, n_feats, act = False),
-            conv(n_feats, args.n_colors, kernel_size)
-        ]
-
         self.head = nn.Sequential(*m_head)
         self.body = nn.Sequential(*m_body)
-        self.tail = nn.Sequential(*m_tail)
+
+        if args.no_upsampling:
+            self.out_dim = n_feats
+        else:
+            self.out_dim = args.n_colors
+            # define tail module
+            m_tail = [
+                common.Upsampler(conv, scale, n_feats, act = False),
+                conv(n_feats, args.n_colors, kernel_size)
+            ]
+ 
+            self.tail = nn.Sequential(*m_tail)
 
     def forward(self, x):
         # x = self.sub_mean(x)
@@ -134,4 +139,4 @@ if __name__ == "__main__":
     model = make(model_spec)
     print(model)
 
-    summary(model, input_size=(1, 3, 1280, 720))
+    summary(model, input_size=(1, 3, 960, 640))

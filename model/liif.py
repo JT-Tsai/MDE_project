@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 import edsr
 import rdn
+from models import make
 
 from utils import make_coord, build
 
@@ -13,17 +14,19 @@ class LIIF(nn.Module):
         self.local_ensemble = local_ensembel
         self.feat_unfold = feat_unfold
         self.cell_decode = cell_decode
-        # modify
-        self.encoder = build(encoder_spec)
+
+        self.encoder = make(encoder_spec)
 
         if imnet_spec is not None:
             imnet_in_dim = self.encoder.out_dim
+            # concat feature around 3*3 patch
             if self.feat_unfold:
                 imnet_in_dim *= 9
             imnet_in_dim += 2 # attach coord
+            # each cell pixel size
             if self.cell_decode:
-                imnet_in_dim += 2 # pixel size
-                self.imnet = build(imnet_spec, args = {"in_dim": imnet_in_dim})
+                imnet_in_dim += 2
+                self.imnet = make(imnet_spec, args = {'in_dim': imnet_in_dim})
         else:
             self.imnet = None
     
@@ -44,5 +47,4 @@ class LIIF(nn.Module):
             pass
         else:
             pass
-
         

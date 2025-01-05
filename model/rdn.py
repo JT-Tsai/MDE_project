@@ -67,23 +67,27 @@ class RDN(nn.Module):
             nn.Conv2d(G0, G0, kernel_size, padding = (kernel_size//2), stride = 1)
         ])
 
-        # Up-sampling net
-        if r == 2 or r == 3:
-            self.UPNet = nn.Sequential(*[
-                conv(G0, G * r * r, kernel_size),
-                nn.PixelShuffle(r),
-                conv(G, args.n_colors, kernel_size)
-            ])
-        elif r == 4:
-            self.UPNet == nn.Sequential(*[
-                conv(G0, G * 4, kernel_size),
-                nn.PixelShuffle(2),
-                conv(G, G * 4, kernel_size),
-                nn.PixelShuffle(2),
-                conv(G, args.n_colors, kernel_size)
-            ])
+        if args.no_upsampling:
+            self.out_dim = G0
         else:
-            raise ValueError("scale must be 2 or 3 or 4.")
+            self.out_dim = args.n_colors
+            # Up-sampling net
+            if r == 2 or r == 3:
+                self.UPNet = nn.Sequential(*[
+                    conv(G0, G * r * r, kernel_size),
+                    nn.PixelShuffle(r),
+                    conv(G, args.n_colors, kernel_size)
+                ])
+            elif r == 4:
+                self.UPNet == nn.Sequential(*[
+                    conv(G0, G * 4, kernel_size),
+                    nn.PixelShuffle(2),
+                    conv(G, G * 4, kernel_size),
+                    nn.PixelShuffle(2),
+                    conv(G, args.n_colors, kernel_size)
+                ])
+            else:
+                raise ValueError("scale must be 2 or 3 or 4.")
 
     def forward(self, x):
         f__1 = self.SFENet1(x)
