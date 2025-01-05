@@ -142,7 +142,7 @@ if __name__ == "__main__":
 
     summary(model, input_size=(1, 3, 960, 640))
 
-    input_tensor = torch.randn(1, 3, 960, 640)
+    input_tensor = torch.randn(1, 3, 960, 640).cuda()
     output_tensor = model(input_tensor)
     print(output_tensor.shape)
 
