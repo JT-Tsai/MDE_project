@@ -1,4 +1,5 @@
 import common
+import torch
 import torch.nn as nn
 
 from models import register
@@ -140,3 +141,8 @@ if __name__ == "__main__":
     print(model)
 
     summary(model, input_size=(1, 3, 960, 640))
+
+    input_tensor = torch.randn(1, 3, 960, 640)
+    output_tensor = model(input_tensor)
+    print(output_tensor.shape)
+
