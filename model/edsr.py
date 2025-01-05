@@ -92,7 +92,7 @@ class EDSR(nn.Module):
                     raise KeyError('unexpected key "{}" in state_dict'.format(name))    
 
 @register("edsr_baseline")
-def make_edsr_baseline(n_resblock = 16, n_feats = 64, res_scale = 1, scale = 2, no_upsampling = False, rgb_range = 1):
+def make_edsr_baseline(n_resblock = 8, n_feats = 64, res_scale = 1, scale = 2, no_upsampling = False, rgb_range = 1):
     args = Namespace()
     args.n_resblock = n_resblock
     args.n_feats = n_feats
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     from models import make
 
     model_spec = {
-        'name': 'edsr',
+        'name': 'edsr_baseline',
         'args': {
             'n_resblock': 32,
             'n_feats': 256,
