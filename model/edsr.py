@@ -58,6 +58,23 @@ class EDSR(nn.Module):
  
             self.tail = nn.Sequential(*m_tail)
 
+        if args.focal_estimation:
+            self.focal = [
+                nn.AdaptiveAvgPool2d((1, 1)),
+                nn.Flatten(),
+            ]
+
+            out_dim = n_feats
+            while out_dim > 16:
+                self.focal.append(nn.Linear(out_dim, out_dim // 2))
+                self.focal.append(nn.ReLU(True))
+                out_dim = out_dim // 2
+
+            self.focal.append(nn.Linear(out_dim, 1))
+
+            self.focal_layers = nn.Sequential(*self.focal)
+
+
     def forward(self, x):
         # x = self.sub_mean(x)
         x = self.head(x)
@@ -70,6 +87,9 @@ class EDSR(nn.Module):
         else:
             x = self.tail(res)
         # x = self.add_mean(x)
+
+        if self.args.focal_estimation:
+            x = self.focal_layers(res)
 
         return x
 
@@ -92,7 +112,7 @@ class EDSR(nn.Module):
                     raise KeyError('unexpected key "{}" in state_dict'.format(name))    
 
 @register("edsr_baseline")
-def make_edsr_baseline(n_resblock = 8, n_feats = 64, res_scale = 1, scale = 2, no_upsampling = False, rgb_range = 1):
+def make_edsr_baseline(n_resblock = 8, n_feats = 64, res_scale = 1, scale = 2, no_upsampling = False, rgb_range = 1, focal_estimation = False):
     args = Namespace()
     args.n_resblock = n_resblock
     args.n_feats = n_feats
@@ -102,6 +122,8 @@ def make_edsr_baseline(n_resblock = 8, n_feats = 64, res_scale = 1, scale = 2, n
     args.no_upsampling = no_upsampling
     args.rgb_range = rgb_range
     args.n_colors = 3
+
+    args.focal_estimation = focal_estimation
 
     return EDSR(args)
 
@@ -121,28 +143,29 @@ def make_edsr(n_resblock = 32, n_feats = 256, res_scale = 0.1, scale = 2, no_ups
 
 if __name__ == "__main__":
     from argparse import Namespace
-    from torchinfo import summary
+    from torchsummary import summary
     from models import make
 
     model_spec = {
         'name': 'edsr_baseline',
         'args': {
             # 'n_resblock': 32,
-            # 'n_feats': 256,
+            'n_feats': 256,
             # 'res_scale': 0.1,
             # 'scale': 2,
             'no_upsampling': True,
             # 'rgb_range': 1
+            'focal_estimation': True,
         },
         'sd': None
     }
 
-    model = make(model_spec)
+    model = make(model_spec).cuda()
     print(model)
 
-    summary(model, input_size=(1, 3, 480, 320))
+    summary(model, input_size=(3, 64, 32), batch_size=1)
 
-    input_tensor = torch.randn(1, 3, 480, 320).cuda()
-    output_tensor = model(input_tensor)
-    print(output_tensor.shape)
+    # input_tensor = torch.randn(1, 3, 64, 32).cuda()
+    # output_tensor = model(input_tensor)
+    # print(output_tensor.shape)
 
