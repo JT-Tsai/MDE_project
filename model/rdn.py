@@ -1,8 +1,8 @@
-import common
 import torch
 import torch.nn as nn
 
-from models import register
+from . import common
+from .models import register
 
 class RDB_Conv(nn.Module):
     def __init__(self, in_channels, growRate, kernel_size = 3):

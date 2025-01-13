@@ -1,8 +1,9 @@
-import common
 import torch
 import torch.nn as nn
+from argparse import Namespace
 
-from models import register
+from . import common
+from .models import register
 
 url = {
     'r16f64x2': 'https://cv.snu.ac.kr/research/EDSR/models/edsr_baseline_x2-1bc95232.pt',
@@ -142,9 +143,8 @@ def make_edsr(n_resblock = 32, n_feats = 256, res_scale = 0.1, scale = 2, no_ups
     return EDSR(args)
 
 if __name__ == "__main__":
-    from argparse import Namespace
     from torchsummary import summary
-    from models import make
+    from .models import make
 
     model_spec = {
         'name': 'edsr_baseline',

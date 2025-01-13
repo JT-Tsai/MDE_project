@@ -2,13 +2,18 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import edsr
-import rdn
-from models import make
 
-from utils import make_coord, build
+
+from .models import make
+
+from utils import make_coord
 
 class LIIF(nn.Module):
+    """
+        local_ensemble:
+        feat_unfold:
+        cell_decode:
+    """
     def __init__(self, encoder_spec, imnet_spec = None, local_ensembel = True, feat_unfold = True, cell_decode = True):
         super().__init__()
         self.local_ensemble = local_ensembel
@@ -40,7 +45,7 @@ class LIIF(nn.Module):
         if self.imnet is None:
             # WTF ?
             ret = F.grid_sample(feat, coord.flip(-1).unsqueeze(1),
-                        model = 'nearest', align_corners = False)[:, :, 0, :].permute(0, 2, 1)
+                        mode = 'nearest', align_corners = False)[:, :, 0, :].permute(0, 2, 1)
 
             return ret
         if self.feat_unfold:
@@ -56,12 +61,13 @@ class LIIF(nn.Module):
             vx_lst, vy_lst, eps_shift = [0], [0], 0
 
         # field radius (global: [-1, 1])
-        rx = 2 / feat.shape[2] / 2
+        rx = 2 / feat.shape[-2] / 2
         ry = 2 / feat.shape[-1] / 2
 
         feat_coord = make_coord(feat.shape[-2:], flatten = False).cuda() \
             .permute(2, 0, 1) \
-            .unsqueeze(0).expand(feat.shape[0], 2, *feat.shape[-2:])
+            .unsqueeze(0).expand(feat.shape[0], 2, *feat.shape[-2:]) 
+        # [2 Channel (xy dimension), H, W] -> [1, 2, H, W] -> [n_feat, 2, H, W] 
         
         preds = []
         areas = []
@@ -69,8 +75,11 @@ class LIIF(nn.Module):
         for vx in vx_lst:
             for vy in vy_lst:
                 coord_ = coord.clone()
+                # consider around xy coord information
+                # mapping into feat shape
                 coord_[:, :, 0] += vx * rx + eps_shift
                 coord_[:, :, 1] += vy * ry + eps_shift
+                # clamp_ directly do inplace method
                 coord_.clamp_(-1+1e-6, 1-1e-6)
                 q_feat = F.grid_sample(
                     feat, coord_.flip(-1).unsqueeze(1),
@@ -106,6 +115,38 @@ class LIIF(nn.Module):
             ret = ret + pred * (area / tot_area).unsqueeze(-1)
         return ret
     
-    def forward(self, inp, coord, cell):
+    def forward(self, inp, coord, cell = None):
         self.gen_feat(inp)
         return self.query_rgb(coord, cell)
+    
+
+if __name__ == "__main__":
+    
+    from torchsummary import summary
+    encoder_spec = {
+        'name': 'edsr_baseline',
+        'args': {
+            # 'n_resblock': 32,
+            'n_feats': 256,
+            # 'res_scale': 0.1,
+            # 'scale': 2,
+            'no_upsampling': True,
+            # 'rgb_range': 1
+            'focal_estimation': False,
+        },
+        'sd': None
+    }
+    
+    # from models import make
+    # model = make(encoder_spec).cuda()
+    # # print(model)
+    # summary(model, input_size=(3, 64, 32), batch_size=1)
+
+    model = LIIF(encoder_spec)
+
+    print(model)
+    H, W = 35,35
+    coord = make_coord((H, W))
+    input = torch.rand(3, 16, 16)
+    out = model(input, coord)
+    print(out)

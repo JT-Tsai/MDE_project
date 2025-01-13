@@ -1,7 +1,7 @@
 import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as F\
+import torch.nn.functional as F
 
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
     return nn.Conv2d(

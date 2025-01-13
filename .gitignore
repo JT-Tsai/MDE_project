@@ -1,3 +1,6 @@
 *.png
 *.md
+data
+__pycache__
+test.*
 model/__pycache__/

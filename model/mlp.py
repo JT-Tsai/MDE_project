@@ -1,5 +1,4 @@
 import torch.nn as nn
-from models import register
 
 
 class MLP(nn.Module):
@@ -20,3 +19,10 @@ class MLP(nn.Module):
         shape = x.shape[:-1]
         x = self.layers(x.view(-1, x.shape[-1]))
         return x.view(*shape, -1)
+    
+if __name__ == "__main__":
+    # test
+    from torchsummary import summary
+    hidden_list = [16, 8, 8, 4]
+    model = MLP(16, 3, hidden_list).cuda()
+    summary(model, input_size = (3, 16, 16), batch_size=1)
