@@ -81,6 +81,7 @@ class EDSR(nn.Module):
         x = self.head(x)
 
         res = self.body(x)
+        # middle output
         res += x
 
         if self.args.no_upsampling:
@@ -90,10 +91,11 @@ class EDSR(nn.Module):
         # x = self.add_mean(x)
 
         if self.args.focal_estimation:
-            x = self.focal_layers(res)
-
-        return x
-
+            focal_length = self.focal_layers(x)
+            return x, focal_length
+        else:
+            return x
+            
     def load_state_dict(self, state_dict, strict = True):
         own_state = self.state_dict()
         for name, param in state_dict.items():
@@ -155,7 +157,7 @@ if __name__ == "__main__":
             # 'scale': 2,
             'no_upsampling': True,
             # 'rgb_range': 1
-            'focal_estimation': True,
+            'focal_estimation': False,
         },
         'sd': None
     }

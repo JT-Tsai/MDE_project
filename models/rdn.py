@@ -125,7 +125,7 @@ if __name__ == "__main__":
     from argparse import Namespace
     from torchinfo import summary
 
-    from models import make
+    from .models import make
     
     model_spec = {
         'name': 'rdn',

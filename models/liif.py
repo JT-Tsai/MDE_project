@@ -1,9 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-
-
 from .models import make
 
 from utils import make_coord
@@ -31,7 +28,8 @@ class LIIF(nn.Module):
             # each cell pixel size
             if self.cell_decode:
                 imnet_in_dim += 2
-                self.imnet = make(imnet_spec, args = {'in_dim': imnet_in_dim})
+            
+            self.imnet = make(imnet_spec, args = {'in_dim': imnet_in_dim})
         else:
             self.imnet = None
     
@@ -43,11 +41,15 @@ class LIIF(nn.Module):
         feat = self.feat
 
         if self.imnet is None:
-            # WTF ?
+            # flip -> ij coord into xy coord
+            # unsqueeze(1) -> insert second dimension (batch_size, 1 (insert_dim), flatten_pixel_num, 2)
+            # output -> (batch_size, channels_num, 1, flatten_pixel_num) -> (batch_size, flatten_pixel_num, channels_num)
+
             ret = F.grid_sample(feat, coord.flip(-1).unsqueeze(1),
                         mode = 'nearest', align_corners = False)[:, :, 0, :].permute(0, 2, 1)
 
             return ret
+        
         if self.feat_unfold:
             feat = F.unfold(feat, 3, padding = 1).view(
                 feat.shape[0], feat.shape[1] * 9, feat.shape[2], feat.shape[3]
@@ -66,7 +68,7 @@ class LIIF(nn.Module):
 
         feat_coord = make_coord(feat.shape[-2:], flatten = False).cuda() \
             .permute(2, 0, 1) \
-            .unsqueeze(0).expand(feat.shape[0], 2, *feat.shape[-2:]) 
+            .unsqueeze(0).expand(feat.shape[0], 2, *feat.shape[-2:])
         # [2 Channel (xy dimension), H, W] -> [1, 2, H, W] -> [n_feat, 2, H, W] 
         
         preds = []
@@ -74,6 +76,7 @@ class LIIF(nn.Module):
 
         for vx in vx_lst:
             for vy in vy_lst:
+                # 
                 coord_ = coord.clone()
                 # consider around xy coord information
                 # mapping into feat shape
@@ -84,12 +87,15 @@ class LIIF(nn.Module):
                 q_feat = F.grid_sample(
                     feat, coord_.flip(-1).unsqueeze(1),
                     mode = 'nearest', align_corners = False)[:, :, 0, :].permute(0, 2, 1)
+                # (batch_size, flatten_pixel_num, channels_num)
                 q_coord = F.grid_sample(
                     feat_coord, coord_.flip(-1).unsqueeze(1),
                     mode='nearest', align_corners=False)[:, :, 0, :].permute(0, 2, 1)
+                # (batch_size, flatten_pixel_num, 2 (pixel coord))
                 rel_coord = coord - q_coord
-                rel_coord[:, :, 0] *= feat.shape[-2]
-                rel_coord[:, :, 1] *= feat.shape[-1]
+                # make coord from [-1, 1] to [H, W]
+                rel_coord[:, :, 0] *= feat.shape[-2] # w
+                rel_coord[:, :, 1] *= feat.shape[-1] # H
 
                 inp = torch.cat([q_feat, rel_coord], dim = -1)
 
@@ -99,12 +105,14 @@ class LIIF(nn.Module):
                     rel_cell[:, :, 1] *= feat.shape[-1]
                     inp = torch.cat([inp, rel_cell], dim = -1)
 
+                # batch_size, flatten_pixel_num
                 bs, q = coord.shape[:2]
+                # pred shape -> [batch_size, flatten_pixel_num, channels_num] -> [batch_size * flatten_pixel_num, channels_num]
                 pred = self.imnet(inp.view(bs * q, -1)).view(bs, q, -1)
                 preds.append(pred)
 
-                areas = torch.abs(rel_coord[:, :, 0] * rel_coord[:, :, 1])
-                areas.append(areas + 1e-9)
+                area = torch.abs(rel_coord[:, :, 0] * rel_coord[:, :, 1])
+                areas.append(area + 1e-9)
 
         tot_area = torch.stack(areas).sum(dim = 0)
         if self.local_ensemble:
@@ -123,6 +131,8 @@ class LIIF(nn.Module):
 if __name__ == "__main__":
     
     from torchsummary import summary
+    import ipdb
+
     encoder_spec = {
         'name': 'edsr_baseline',
         'args': {
@@ -136,17 +146,32 @@ if __name__ == "__main__":
         },
         'sd': None
     }
+    imnet_spec = {
+        'name': 'mlp',
+        'args': {
+            'in_dim': 258,
+            'out_dim': 3,
+            'hidden_list': [256, 256, 256, 256]
+        }
+    }
     
-    # from models import make
+    # from .models import make
     # model = make(encoder_spec).cuda()
     # # print(model)
     # summary(model, input_size=(3, 64, 32), batch_size=1)
 
-    model = LIIF(encoder_spec)
+    model = LIIF(encoder_spec, imnet_spec=imnet_spec, cell_decode=False).cuda()
 
     print(model)
-    H, W = 35,35
-    coord = make_coord((H, W))
-    input = torch.rand(3, 16, 16)
+    # H, W = 35,35
+    # coord = make_coord((H, W))
+    # input = torch.rand(3, 16, 16)
+    # out = model(input, coord)
+    # print(out)
+
+    input = torch.rand(1, 3, 4, 4).cuda()
+    # batch size = 1
+    coord = make_coord((10, 5)).unsqueeze(0).cuda()
+
     out = model(input, coord)
-    print(out)
+    print(out.shape)
