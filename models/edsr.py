@@ -96,7 +96,7 @@ class EDSR(nn.Module):
                     raise KeyError('unexpected key "{}" in state_dict'.format(name))    
 
 @register("edsr_baseline")
-def make_edsr_baseline(n_resblock = 8, n_feats = 64, res_scale = 1, scale = 2, no_upsampling = False, rgb_range = 1):
+def make_edsr_baseline(n_resblock = 4, n_feats = 64, res_scale = 1, scale = 2, no_upsampling = False, rgb_range = 1):
     args = Namespace()
     args.n_resblock = n_resblock
     args.n_feats = n_feats
@@ -126,6 +126,7 @@ def make_edsr(n_resblock = 32, n_feats = 256, res_scale = 0.1, scale = 2, no_ups
 if __name__ == "__main__":
     from torchsummary import summary
     from .models import make
+    import argparse
 
     model_spec = {
         'name': 'edsr_baseline',
@@ -142,8 +143,13 @@ if __name__ == "__main__":
 
     model = make(model_spec).cuda()
     print(model)
+    
+    args = argparse.ArgumentParser()
+    args.add_argument('--input_H', type = int, default = 64)
+    args.add_argument('--input_W', type = int, default = 32)
+    args = args.parse_args()
 
-    summary(model, input_size=(3, 64, 32), batch_size=1)
+    summary(model, input_size=(3, args.input_H, args.input_W), batch_size=1)
 
     # input_tensor = torch.randn(1, 3, 64, 32).cuda()
     # output_tensor = model(input_tensor)
