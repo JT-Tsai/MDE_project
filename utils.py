@@ -3,8 +3,9 @@ import time
 import shutil
 import math
 
-import torch
 import numpy as np
+import torch
+import torch.nn.functional as F
 from torch.optim import SGD, Adam
 from torch.utils.tensorboard import SummaryWriter
 
@@ -99,29 +100,25 @@ def make_coord(shape, ranges = None, flatten = True):
         r = (v1 - v0) / (2 * n)
         seq = v0 + r + (2 * r) * torch.arange(n).float()
         coord_seqs.append(seq)
-    ret = torch.stack(torch.meshgrid(*coord_seqs), dim = -1)
+    ret = torch.stack(torch.meshgrid(*coord_seqs, indexing="ij"), dim = -1)
+    
     if flatten:
         ret = ret.view(-1, ret.shape[-1])
     return ret
 
 def to_pixel_samples(img):
-    """Convert the image to coord-RGB pairs.
-        img: Tensor, (3, H, W)
+    """
+        coord: Tensor, (pixels_num, 2)
+        img: Tensor, (pixels_num, 3_channel_dim)
     """
     coord = make_coord(img.shape[-2:]) # (H, W)
-    rgb = img.view(3, -1).permute(1, 0) # (seq, 3_channel_value)
-    return coord, rgb
+    flatten_rgb = img.view(3, -1).permute(1, 0) # (pixels_num, 3_channel_dim)
+    return coord, flatten_rgb
 
-def PSNR(sr, hr, dataset = None, scale = 1, rgb_range = 1):
-    # WTF ?
-    diff = (sr - hr) / rgb_range
-    if dataset is not None:
-        pass
+def PSNR(sr, hr):
+    mse = torch.mean((sr - hr) ** 2)
+    if mse == 0:
+        return math.inf
     else:
-        valid = diff
-    mse = valid.pow(2).mean()
+        return 20 * math.log10(255 / math.sqrt(mse))
 
-    return -10 * torch.log10(mse)
-
-def SSIM():
-    pass

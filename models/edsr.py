@@ -59,21 +59,6 @@ class EDSR(nn.Module):
  
             self.tail = nn.Sequential(*m_tail)
 
-        if args.focal_estimation:
-            self.focal = [
-                nn.AdaptiveAvgPool2d((1, 1)),
-                nn.Flatten(),
-            ]
-
-            out_dim = n_feats
-            while out_dim > 16:
-                self.focal.append(nn.Linear(out_dim, out_dim // 2))
-                self.focal.append(nn.ReLU(True))
-                out_dim = out_dim // 2
-
-            self.focal.append(nn.Linear(out_dim, 1))
-
-            self.focal_layers = nn.Sequential(*self.focal)
 
 
     def forward(self, x):
@@ -89,12 +74,8 @@ class EDSR(nn.Module):
         else:
             x = self.tail(res)
         # x = self.add_mean(x)
-
-        if self.args.focal_estimation:
-            focal_length = self.focal_layers(x)
-            return x, focal_length
-        else:
-            return x
+        
+        return x
             
     def load_state_dict(self, state_dict, strict = True):
         own_state = self.state_dict()
@@ -115,7 +96,7 @@ class EDSR(nn.Module):
                     raise KeyError('unexpected key "{}" in state_dict'.format(name))    
 
 @register("edsr_baseline")
-def make_edsr_baseline(n_resblock = 8, n_feats = 64, res_scale = 1, scale = 2, no_upsampling = False, rgb_range = 1, focal_estimation = False):
+def make_edsr_baseline(n_resblock = 8, n_feats = 64, res_scale = 1, scale = 2, no_upsampling = False, rgb_range = 1):
     args = Namespace()
     args.n_resblock = n_resblock
     args.n_feats = n_feats
@@ -125,8 +106,6 @@ def make_edsr_baseline(n_resblock = 8, n_feats = 64, res_scale = 1, scale = 2, n
     args.no_upsampling = no_upsampling
     args.rgb_range = rgb_range
     args.n_colors = 3
-
-    args.focal_estimation = focal_estimation
 
     return EDSR(args)
 
@@ -157,7 +136,6 @@ if __name__ == "__main__":
             # 'scale': 2,
             'no_upsampling': True,
             # 'rgb_range': 1
-            'focal_estimation': False,
         },
         'sd': None
     }

@@ -30,7 +30,7 @@ class RealImageFolder(Dataset):
 
     @lru_cache(maxsize = 100)
     def load_image(self, img_path):
-        return Image.open(img_path).convert('RGB')
+        return Image.open(img_path).convert('RGB').copy()
 
     def __len__(self):
         return len(self.data)

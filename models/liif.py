@@ -1,17 +1,19 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from .models import register
 from .models import make
 
 from utils import make_coord
 
+@register('liif')
 class LIIF(nn.Module):
     """
         local_ensemble:
         feat_unfold:
         cell_decode:
     """
-    def __init__(self, encoder_spec, imnet_spec = None, local_ensembel = True, feat_unfold = True, cell_decode = True):
+    def __init__(self, encoder_spec, imnet_spec = None, local_ensembel = True, feat_unfold = True, cell_decode = True, ):
         super().__init__()
         self.local_ensemble = local_ensembel
         self.feat_unfold = feat_unfold
@@ -32,10 +34,30 @@ class LIIF(nn.Module):
             self.imnet = make(imnet_spec, args = {'in_dim': imnet_in_dim})
         else:
             self.imnet = None
+
+        # focal length estimation
+        focal_layer = [
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten(),
+        ]
+
+        out_dim = self.encoder.out_dim
+        while out_dim > 16:
+            focal_layer.append(nn.Linear(out_dim, out_dim // 2))
+            focal_layer.append(nn.ReLU(True))
+            out_dim = out_dim // 2
+
+        focal_layer.append(nn.Linear(out_dim, 1))
+
+        self.focal_layers = nn.Sequential(*focal_layer)
     
     def gen_feat(self, input):
         self.feat = self.encoder(input)
         return self.feat
+    
+    def gen_focal_length(self):
+        self.focal_length = self.focal_layers(self.feat)
+        return self.focal_length
     
     def query_rgb(self, coord, cell = None):
         feat = self.feat
@@ -125,7 +147,7 @@ class LIIF(nn.Module):
     
     def forward(self, inp, coord, cell = None):
         self.gen_feat(inp)
-        return self.query_rgb(coord, cell)
+        return self.query_rgb(coord, cell), self.gen_focal_length()
     
 
 if __name__ == "__main__":
@@ -142,7 +164,6 @@ if __name__ == "__main__":
             # 'scale': 2,
             'no_upsampling': True,
             # 'rgb_range': 1
-            'focal_estimation': False,
         },
         'sd': None
     }
@@ -173,5 +194,5 @@ if __name__ == "__main__":
     # batch size = 1
     coord = make_coord((10, 5)).unsqueeze(0).cuda()
 
-    out = model(input, coord)
-    print(out.shape)
+    out, focal_length = model(input, coord)
+    print(out.shape, focal_length.shape)
