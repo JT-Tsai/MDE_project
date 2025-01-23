@@ -144,10 +144,10 @@ if __name__ == "__main__":
     model = make(model_spec).cuda()
     print(model)
     
-    args = argparse.ArgumentParser()
-    args.add_argument('--input_H', type = int, default = 64)
-    args.add_argument('--input_W', type = int, default = 32)
-    args = args.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_H', type = int, default = 64)
+    parser.add_argument('--input_W', type = int, default = 32)
+    args = parser.parse_args()
 
     summary(model, input_size=(3, args.input_H, args.input_W), batch_size=1)
 
