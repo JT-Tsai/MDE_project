@@ -23,6 +23,8 @@ model:
         args:
           out_dim: 3
           hidden_list: [256, 256, 256, 256]
+    focal_spec:
+        name: focal_mlp
 
 optimizer:
   name: adam
