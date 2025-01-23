@@ -153,5 +153,5 @@ if __name__ == "__main__":
 
     input_tensor = torch.randn(1, 3, args.input_H, args.input_W).cuda()
     output_tensor = model(input_tensor)
-    print(output_tensor.shape)
+    print(output_tensor)
 
