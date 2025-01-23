@@ -98,11 +98,9 @@ def train(train_loader, model, optimizer):
 
 
 
-        # loss = loss_fn
-        return None
-        
-        # loss = loss_fn
-        return None
+    # loss = loss_fn
+    return None
+
 
 
 def main(config_, save_path):
