@@ -90,8 +90,8 @@ def train(train_loader, model, optimizer):
         #     batch['focal_length']
         #     batch['cell']
 
-        pred_hr, pred_focal = model(batch['lr_image'], batch['hr_coord'], batch['cell'])
         ipdb.set_trace()
+        pred_hr, pred_focal = model(batch['lr_image'], batch['hr_coord'], batch['cell'])
         
         sr_loss = L1_loss(pred_hr, batch['hr_image'])
         focal_loss = L2_loss(pred_focal, batch['focal_length'])
