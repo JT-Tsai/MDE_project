@@ -14,10 +14,10 @@ dataset:
 model:
   name: liif
   args:
-    encoder_spec:
-        name: edsr_baseline
-        args:
-            no_upsampling: True,
+    # encoder_spec:
+    #     name: edsr_baseline
+    #     args:
+    #         no_upsampling: True,
     imnet_spec:
         name: mlp
         args:
