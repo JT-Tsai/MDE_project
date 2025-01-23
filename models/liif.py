@@ -45,10 +45,12 @@ class LIIF(nn.Module):
             self.encoder = make(encoder_spec)
         else:
             self.encoder = None
+        
+        self.in_dim = self.encoder.out_dim if self.encoder is not None else 3
             
 
         if imnet_spec is not None:
-            imnet_in_dim = self.encoder.out_dim if self.encoder is not None else 3
+            imnet_in_dim = self.in_dim
             # concat feature around 3*3 patch
             if self.feat_unfold:
                 imnet_in_dim *= 9
@@ -62,7 +64,7 @@ class LIIF(nn.Module):
             self.imnet = None
 
         # focal length estimation
-        self.focal_layers = make(focal_spec, args = {'in_dim': self.encoder.out_dim})
+        self.focal_layers = make(focal_spec, args = {'in_dim': self.in_dim})
     
     def gen_feat(self, input):
         self.feat = self.encoder(input)
