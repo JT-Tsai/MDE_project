@@ -149,9 +149,9 @@ if __name__ == "__main__":
     parser.add_argument('--input_W', type = int, default = 32)
     args = parser.parse_args()
 
-    summary(model, input_size=(3, args.input_H, args.input_W), batch_size=1)
+    # summary(model, input_size=(3, args.input_H, args.input_W), batch_size=1)
 
-    # input_tensor = torch.randn(1, 3, 64, 32).cuda()
-    # output_tensor = model(input_tensor)
-    # print(output_tensor.shape)
+    input_tensor = torch.randn(1, 3, args.input_H, args.input_W).cuda()
+    output_tensor = model(input_tensor)
+    print(output_tensor.shape)
 
