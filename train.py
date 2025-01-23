@@ -35,9 +35,9 @@ def make_data_loader(spec):
     #     log('  {}: shape={}'.format(k, tuple(v.shape)))
 
     train_loader = DataLoader(train_dataset, batch_size=spec['batch_size'], 
-                        shuffle = True, pin_memory=True)
+                        shuffle = True) #, pin_memory=True)
     val_loader = DataLoader(val_dataset, batch_size=spec['batch_size'], 
-                        shuffle = False, pin_memory=True)
+                        shuffle = False) #, pin_memory=True)
     
     return train_loader, val_loader
 
@@ -84,14 +84,14 @@ def train(train_loader, model, optimizer):
         batch['cell'] = batch['cell'].cuda()
         
         
-        #     batch['lr_image']
-        #     batch['hr_image']
-        #     batch['hr_coord']
-        #     batch['focal_length']
-        #     batch['cell']
+        # batch['lr_image']
+        # batch['hr_image']
+        # batch['hr_coord']
+        # batch['focal_length']
+        # batch['cell']
 
-    ipdb.set_trace()
-    pred_hr, pred_focal = model(batch['lr_image'], batch['hr_coord'], cell = batch['cell'])
+        ipdb.set_trace()
+        pred_hr, pred_focal = model(batch['lr_image'], batch['hr_coord'], cell = batch['cell'])
     
     sr_loss = L1_loss(pred_hr, batch['hr_image'])
     focal_loss = L2_loss(pred_focal, batch['focal_length'])
