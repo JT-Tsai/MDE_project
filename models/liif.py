@@ -67,7 +67,7 @@ class LIIF(nn.Module):
         self.focal_layers = make(focal_spec, args = {'in_dim': self.in_dim})
     
     def gen_feat(self, input):
-        self.feat = self.encoder(input)
+        self.feat = self.encoder(input) if self.encoder is not None else input
         return self.feat
     
     def gen_focal_length(self):
