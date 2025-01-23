@@ -35,16 +35,20 @@ class LIIF(nn.Module):
         feat_unfold:
         cell_decode:
     """
-    def __init__(self, encoder_spec, imnet_spec = None, focal_spec = None, local_ensembel = True, feat_unfold = True, cell_decode = True, ):
+    def __init__(self, encoder_spec = None, imnet_spec = None, focal_spec = None, local_ensembel = True, feat_unfold = True, cell_decode = True, ):
         super().__init__()
         self.local_ensemble = local_ensembel
         self.feat_unfold = feat_unfold
         self.cell_decode = cell_decode
 
-        self.encoder = make(encoder_spec)
-        
+        if encoder_spec is None:
+            self.encoder = make(encoder_spec)
+        else:
+            self.encoder = None
+            
+
         if imnet_spec is not None:
-            imnet_in_dim = self.encoder.out_dim
+            imnet_in_dim = self.encoder.out_dim if self.encoder is not None else 3
             # concat feature around 3*3 patch
             if self.feat_unfold:
                 imnet_in_dim *= 9
@@ -65,7 +69,9 @@ class LIIF(nn.Module):
         return self.feat
     
     def gen_focal_length(self):
-        self.focal_length = self.focal_layers(self.feat)
+        # self.focal_length = self.focal_layers(self.feat)
+        """test"""
+        self.focal_length = None
         return self.focal_length
     
     def query_rgb(self, coord, cell = None):
