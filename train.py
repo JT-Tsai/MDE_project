@@ -79,8 +79,9 @@ def train(train_loader, model, optimizer):
 
     """WIP"""
     for batch in tqdm(train_loader, leave = False, desc = "train"):
-        for k, v in batch.items():
-            batch[k] = v.cuda()
+        batch['lr_image'] = batch['lr_image'].cuda()
+        batch['hr_coord'] = batch['hr_coord'].cuda()
+        batch['cell'] = batch['cell'].cuda()
         
         #     batch['lr_image']
         #     batch['hr_image']
