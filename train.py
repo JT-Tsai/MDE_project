@@ -7,6 +7,7 @@ import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.data import DataLoader, random_split
 from torch.optim.lr_scheduler import MultiStepLR
+from torchinfo import summary
 
 import datasets
 import models
