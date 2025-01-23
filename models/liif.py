@@ -41,7 +41,7 @@ class LIIF(nn.Module):
         self.feat_unfold = feat_unfold
         self.cell_decode = cell_decode
 
-        if encoder_spec is None:
+        if encoder_spec is not None:
             self.encoder = make(encoder_spec)
         else:
             self.encoder = None
