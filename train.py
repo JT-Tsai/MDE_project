@@ -83,6 +83,8 @@ def train(train_loader, model, optimizer):
         batch['hr_coord'] = batch['hr_coord'].cuda()
         batch['cell'] = batch['cell'].cuda()
         
+        ipdb.set_trace()
+        
         #     batch['lr_image']
         #     batch['hr_image']
         #     batch['hr_coord']
@@ -94,7 +96,6 @@ def train(train_loader, model, optimizer):
         sr_loss = L1_loss(pred_hr, batch['hr_image'])
         focal_loss = L2_loss(pred_focal, batch['focal_length'])
 
-        ipdb.set_trace()
 
 
         # loss = loss_fn
