@@ -89,7 +89,8 @@ def train(train_loader, model, optimizer, bsize):
         while ql < n:
             qr = min(ql + bsize, n)
             pred = model.query_rgb(coord[:, ql:qr, :], cell[:, ql:qr, :] if cell is not None else None)
-            loss = L1_loss(pred, gt)
+            ipdb.set_trace()
+            loss = L1_loss(pred, gt[:, ql:qr, :])
 
             optimizer.zero_grad()
             loss.backward()
