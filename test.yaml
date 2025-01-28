@@ -23,7 +23,7 @@ model:
         args:
           out_dim: 3
           hidden_list: [256, 256, 256, 256]
-    focal_spec:
+    # focal_spec:
         # name: focal_mlp
         # args:
         #   in_dim: 256
@@ -39,3 +39,5 @@ multi_step_lr:
 
 epoch_val: 1
 epoch_save: 100
+
+pixel_bsize: 3000

@@ -122,3 +122,8 @@ def PSNR(sr, hr):
     else:
         return 20 * math.log10(255 / math.sqrt(mse))
 
+def check_vram():
+    device = torch.device('cuda:0')
+    free, total = torch.cuda.mem_get_info(device)
+    mem_used_MB = (total - free) / 1024 ** 2
+    print(mem_used_MB)

@@ -69,32 +69,39 @@ def prepare_training():
         
         return model, optimizer, epoch_start, lr_scheduler
     
-def train(train_loader, model, optimizer):
-    model.train()
-    # find document reference
-    # adjust others loss_fn to compared with same model
+def train(train_loader, model, optimizer, bsize = config['pixel_bsize']):
     L1_loss = nn.L1Loss()
     L2_loss = nn.MSELoss()
     train_loss = utils.Averager()
 
-    """WIP"""
+    model.train()
+    
     for batch in tqdm(train_loader, desc = "train"):
-        batch['lr_image'] = batch['lr_image'].cuda()
-        batch['hr_coord'] = batch['hr_coord'].cuda()
-        batch['cell'] = batch['cell'].cuda()
+        input = batch['lr_image'].cuda()
+        gt = batch['hr_image'].cuda()
+        coord = batch['hr_coord'].cuda()
+        cell = batch['cell'].cuda()
         
-        
-        # batch['lr_image']
-        # batch['hr_image']
-        # batch['hr_coord']
-        # batch['focal_length']
-        # batch['cell']
+        model.gen_feat(input)
+        n = coord.shape[1]
+        ql = 0
+        preds = []
+        while ql < n:
+            qr = min(ql + bsize, n)
+            pred = model.query_rgb(coord[:, ql:qr, :], cell[:, ql:qr, :] if cell is not None else None)
+            loss = L1_loss(pred, gt)
+
+            optimizer.zero_grad()
+            loss.backward()
+            ipdb.set_trace()
+            optimizer.step()
+
+            # preds.append(pred)
+            ql = qr
+            
+        # pred = torch.cat(preds, dim = 1)
 
         ipdb.set_trace()
-        pred_hr, pred_focal = model(batch['lr_image'], batch['hr_coord'], cell = batch['cell'])
-    
-    sr_loss = L1_loss(pred_hr, batch['hr_image'])
-    focal_loss = L2_loss(pred_focal, batch['focal_length'])
 
 
 
