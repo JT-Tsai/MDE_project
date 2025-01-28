@@ -187,10 +187,13 @@ if __name__ == "__main__":
     parser.add_argument("--name", default = None)
     parser.add_argument("--tag", default = None)
     parser.add_argument("--gpu", default = 0)
+    parser.add_argument("--bsize", default = None)
     args = parser.parse_args()
 
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader = yaml.FullLoader)
+        if args.bsize is not None:
+            config['pixel_bsize'] = int(args.bsize)
         print("config loaded")
     
     save_name = args.name
