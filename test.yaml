@@ -3,7 +3,7 @@ dataset:
     name: coz_folder
     args:
       root_path: "data/coz_data/train_LR"
-      first_k: 10
+      first_k: 100
   wrapper:
     name: coz_wrapper
     args:
