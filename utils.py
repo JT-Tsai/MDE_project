@@ -154,12 +154,18 @@ def eval_psnr(loader, model, eval_bsize = 5000):
 
         val = PSNR_Metric(pred, gt)
         res.add(val, input.shape[0])
+
+        plot_img(pred)
         ipdb.set_trace()
+
         pbar.set_description('PSNR: {:.4f}'.format(res.item()))
 
     return res.item()
 
-
+def plot_img(pred):
+    import matplotlib.pyplot as plt
+    plt.imshow(pred.squeeze().permute(1, 2, 0).cpu())
+    plt.show()
 
     
 
