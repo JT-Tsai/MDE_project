@@ -40,4 +40,4 @@ multi_step_lr:
 epoch_val: 1
 epoch_save: 100
 
-pixel_bsize: 80000
+pixel_bsize: 1000000
