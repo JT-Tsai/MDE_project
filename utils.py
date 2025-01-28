@@ -159,7 +159,7 @@ def eval_psnr(loader, model, eval_bsize = 5000):
         gt = gt.view(*shape).permute(0, 3, 1, 2).contiguous()
 
         val = PSNR(pred, gt)
-        res.add(val.item(), input.shape[0])
+        res.add(val.items(), input.shape[0])
 
         pbar.set_description('PSNR: {:.4f}'.format(res.item()))
 
