@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from torch.optim import SGD, Adam
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+from PSNR import PSNR
 
 import ipdb
 
@@ -118,18 +119,11 @@ def to_pixel_samples(img):
     flatten_rgb = img.view(3, -1).permute(1, 0) # (pixels_num, 3_channel_dim)
     return coord, flatten_rgb
 
-def PSNR(sr, hr, PIXEL_MAX = 1.0):
-    mse = torch.mean((sr - hr) ** 2)
-    ipdb.set_trace()
-    if mse == 0:
-        return math.inf
-    else:
-        return 20 * math.log10(1 / math.sqrt(mse))
     
 def eval_psnr(loader, model, eval_bsize = 5000):
     model.eval()
     res = Averager()
-    
+    PSNR_Metric = PSNR()
     pbar = tqdm(loader, desc = 'eval')
     ipdb.set_trace()
     for batch in pbar:
@@ -158,9 +152,9 @@ def eval_psnr(loader, model, eval_bsize = 5000):
             .permute(0, 3, 1, 2).contiguous()
         gt = gt.view(*shape).permute(0, 3, 1, 2).contiguous()
 
-        val = PSNR(pred, gt)
+        val = PSNR_Metric(pred, gt)
         res.add(val, input.shape[0])
-
+        ipdb.set_trace()
         pbar.set_description('PSNR: {:.4f}'.format(res.item()))
 
     return res.item()
