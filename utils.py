@@ -118,13 +118,14 @@ def to_pixel_samples(img):
     flatten_rgb = img.view(3, -1).permute(1, 0) # (pixels_num, 3_channel_dim)
     return coord, flatten_rgb
 
-
-"""test pred"""
-def save_img(pred):
+def save_img(pred, gt, epoch, idx):
     from torchvision.utils import save_image
-    """WIP"""
-    save_image(pred[0], 'tmp.png')
+    img = torch.cat([pred, gt], dim=3)
     
+    epoch_dir = os.path.join(_log_path, 'eval', f'epoch_{epoch}')
+    if not os.path.exists(epoch_dir):
+        os.makedirs(epoch_dir)
+    save_image(img[0], os.path.join(epoch_dir, f'sample_{idx}.png'))
 
 def check_vram():
     device = torch.device('cuda:0')

@@ -29,7 +29,6 @@ model:
         # args:
         #   in_dim: 256
 
-optimizer:
   name: adam
   args:
     lr: 1.e-4
