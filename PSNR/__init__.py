@@ -7,7 +7,7 @@ def psnr(sr, hr, PIXEL_MAX = 1.0):
     if mse == 0:
         return math.inf
     else:
-        return 20 * torch.log10(PIXEL_MAX / torch.sqrt(mse))
+        return 20 * math.log10(PIXEL_MAX / math.sqrt(mse))
     
 class PSNR(nn.Module):
     def __init__(self, PIXEL_MAX = 1.0):
@@ -15,4 +15,5 @@ class PSNR(nn.Module):
         self.PIXEL_MAX = PIXEL_MAX
 
     def forward(self, sr, hr):
-        return psnr(sr, hr, self.PIXEL_MAX)
+        mse = torch.mean((sr - hr) ** 2)
+        return 20 * torch.log10(self.PIXEL_MAX / torch.sqrt(mse))
