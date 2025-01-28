@@ -164,8 +164,10 @@ def eval_psnr(loader, model, eval_bsize = 5000):
 
 def plot_img(pred):
     import matplotlib.pyplot as plt
+
     plt.imshow(pred.squeeze().permute(1, 2, 0).cpu())
-    plt.show()
+    plt.savefig('tmp.png')
+    plt.close()
 
     
 
