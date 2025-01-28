@@ -162,13 +162,14 @@ def eval_psnr(loader, model, eval_bsize = 5000):
 
     return res.item()
 
-def plot_img(pred):
-    import matplotlib.pyplot as plt
-
-    plt.imshow(pred.squeeze().permute(1, 2, 0).cpu().numpy())
-    plt.savefig('tmp.png')
-    plt.close()
-
+def save_img(pred):
+    from PIL import Image
+    pred = pred.permute(0, 2, 3, 1).contiguous()
+    pred = pred.cpu().numpy()
+    pred = np.clip(pred, 0, 1) * 255
+    pred = pred.round().astype(np.uint8)
+    for i, img in enumerate(pred):
+        Image.fromarray(img).save('{}.png'.format(i))
     
 
 
