@@ -25,6 +25,7 @@ class RealImageFolder(Dataset):
             # ipdb.set_trace()
             
             if first_k:
+                print(first_k)
                 file_list = file_list[:first_k]
 
             if file_list:
