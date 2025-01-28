@@ -96,10 +96,10 @@ def train(train_loader, model, optimizer, bsize):
             loss.backward()
             ipdb.set_trace()
             optimizer.step()
-
+            
             # preds.append(pred)
             ql = qr
-            
+            pred = None; loss = None
         # pred = torch.cat(preds, dim = 1)
 
         ipdb.set_trace()
