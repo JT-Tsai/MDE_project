@@ -69,7 +69,7 @@ def prepare_training():
         
         return model, optimizer, epoch_start, lr_scheduler
     
-def train(train_loader, model, optimizer, bsize = config['pixel_bsize']):
+def train(train_loader, model, optimizer, bsize):
     L1_loss = nn.L1Loss()
     L2_loss = nn.MSELoss()
     train_loss = utils.Averager()
@@ -136,7 +136,7 @@ def main(config_, save_path):
 
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
-        train_loss = train(train_loader, model, optimizer)
+        train_loss = train(train_loader, model, optimizer, bsize = config['pixel_bsize'])
         if lr_scheduler is not None:
             lr_scheduler.step()
 
