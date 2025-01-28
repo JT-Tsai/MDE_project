@@ -72,11 +72,10 @@ def prepare_training():
 def train(train_loader, model, optimizer, bsize):
     L1_loss = nn.L1Loss()
     # L2_loss = nn.MSELoss()
-    train_loss = utils.Averager()
-
     model.train()
     
-    for batch in tqdm(train_loader, desc = "train"):
+    pbar = tqdm(train_loader, desc = 'train')
+    for batch in pbar:
         input = batch['lr_image'].cuda()
         gt = batch['hr_image'].cuda()
         coord = batch['hr_coord'].cuda()
@@ -90,7 +89,10 @@ def train(train_loader, model, optimizer, bsize):
             pred = model.query_rgb(coord[:, ql:qr, :], cell[:, ql:qr, :] if cell is not None else None)
             # ipdb.set_trace()
             loss = L1_loss(pred, gt[:, ql:qr, :])
-            train_loss.add(loss.item())
+
+            pbar.set_description('loss: {:.4f}'.format(loss.item()))
+            writer.add_scalars('loss', {'train': loss}, optimizer.step_num)
+            
             optimizer.zero_grad()
             loss.backward()
             # ipdb.set_trace()
@@ -98,8 +100,6 @@ def train(train_loader, model, optimizer, bsize):
             
             ql = qr
             pred = None; loss = None
-
-    return train_loss.item()
 
 def eval(loader, model, epoch, eval_bsize = 5000):
     model.eval()
@@ -179,12 +179,10 @@ def main(config_, save_path):
 
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
-        train_loss = train(train_loader, model, optimizer, bsize = config['train_bsize'])
+        train(train_loader, model, optimizer, bsize = config['train_bsize'])
+
         if lr_scheduler is not None:
             lr_scheduler.step()
-
-        log_info.append('train: loss={:.4f}'.format(train_loss))
-        writer.add_scalars('loss', {'train': train_loss}, epoch)
 
         model_spec = config['model']
         model_spec['sd'] = model.state_dict()
