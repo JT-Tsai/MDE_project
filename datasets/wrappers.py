@@ -33,7 +33,7 @@ class coz_wrapper(Dataset):
             "lr_image": self.dataset[idx]["lr_image"],
             "hr_image": flatten_hr,
             "hr_coord": hr_coord,
-            "focal_length": self.dataset[idx]["focal_length"],
+            # "focal_length": self.dataset[idx]["focal_length"],
             "cell": cell if self.cell_decode else None
         }
         

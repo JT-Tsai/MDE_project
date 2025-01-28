@@ -140,5 +140,5 @@ if __name__ == "__main__":
     }
 
     model = make(model_spec)
-    # print(model)
-    summary(model, input_size=(1, 3, 64, 32))
+    print(model)
+    summary(model, input_size=(1, 3, 960, 640))

@@ -24,6 +24,9 @@ class RealImageFolder(Dataset):
             file_list = [os.path.join(dir_path, filename) for filename in file_list]
             # ipdb.set_trace()
             
+            if first_k:
+                file_list = file_list[:first_k]
+
             if file_list:
                 image_combination = list(itertools.combinations(file_list, 2))
                 self.data.extend(image_combination)
@@ -44,7 +47,7 @@ class RealImageFolder(Dataset):
         focal_length = self.max_focal_length / float(os.path.splitext(hr_basename)[0])
         focal_length = round(focal_length, 2)
         ret = {
-            "focal_length": focal_length,
+            # "focal_length": focal_length,
             "lr_image": self.transform(lr_img),
             "hr_image": self.transform(hr_img),
         }

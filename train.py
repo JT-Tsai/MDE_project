@@ -78,7 +78,7 @@ def train(train_loader, model, optimizer):
     train_loss = utils.Averager()
 
     """WIP"""
-    for batch in tqdm(train_loader, leave = False, desc = "train"):
+    for batch in tqdm(train_loader, desc = "train"):
         batch['lr_image'] = batch['lr_image'].cuda()
         batch['hr_coord'] = batch['hr_coord'].cuda()
         batch['cell'] = batch['cell'].cuda()

@@ -64,17 +64,17 @@ class LIIF(nn.Module):
             self.imnet = None
 
         # focal length estimation
-        self.focal_layers = make(focal_spec, args = {'in_dim': self.in_dim})
+        if focal_spec is not None:
+            self.focal_layers = make(focal_spec, args = {'in_dim': self.in_dim})
     
     def gen_feat(self, input):
         self.feat = self.encoder(input) if self.encoder is not None else input
         return self.feat
     
     def gen_focal_length(self):
+        pass
         # self.focal_length = self.focal_layers(self.feat)
-        """test"""
-        self.focal_length = None
-        return self.focal_length
+        # return self.focal_length
     
     def query_rgb(self, coord, cell = None):
         feat = self.feat
@@ -164,7 +164,8 @@ class LIIF(nn.Module):
     
     def forward(self, inp, coord, cell = None):
         self.gen_feat(inp)
-        return self.query_rgb(coord, cell), self.gen_focal_length()
+        # return self.query_rgb(coord, cell), self.gen_focal_length()
+        return self.query_rgb(coord, cell)
     
 
 if __name__ == "__main__":

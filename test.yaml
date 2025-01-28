@@ -24,9 +24,9 @@ model:
           out_dim: 3
           hidden_list: [256, 256, 256, 256]
     focal_spec:
-        name: focal_mlp
-        args:
-          in_dim: 256
+        # name: focal_mlp
+        # args:
+        #   in_dim: 256
 
 optimizer:
   name: adam
