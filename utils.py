@@ -8,9 +8,7 @@ import torch
 import torch.nn.functional as F
 from torch.optim import SGD, Adam
 from torch.utils.tensorboard import SummaryWriter
-from tqdm import tqdm
-from PSNR import PSNR
-from SSIM import SSIM
+
 
 import ipdb
 
@@ -120,57 +118,13 @@ def to_pixel_samples(img):
     flatten_rgb = img.view(3, -1).permute(1, 0) # (pixels_num, 3_channel_dim)
     return coord, flatten_rgb
 
-    
-def eval_psnr(loader, model, eval_bsize = 5000):
-    model.eval()
-    res = Averager()
-    PSNR_Metric = PSNR()
-    SSIM_Metric = SSIM()
-    pbar = tqdm(loader, leave = False, desc = 'eval')
-    ipdb.set_trace()
-    for batch in pbar:
-        input = batch['lr_image'].cuda()
-        gt = batch['hr_image'].cuda()
-        coord = batch['hr_coord'].cuda()
-        cell = batch['cell'].cuda()
-
-        with torch.no_grad():
-            model.gen_feat(input)
-            n = coord.shape[1]
-            ql = 0
-            preds = []
-            while ql < n:
-                qr = min(ql + eval_bsize, n)
-                pred = model.query_rgb(coord[:, ql:qr, :], 
-                    cell[:, ql:qr, :] if cell is not None else None)
-                preds.append(pred)
-                ql = qr
-            pred = torch.cat(preds, dim = 1)
-
-        # ipdb.set_trace()
-        h, w = batch['hr_shape']
-        shape = [input.shape[0], h, w, 3]
-        pred = pred.view(*shape) \
-            .permute(0, 3, 1, 2).contiguous()
-        gt = gt.view(*shape).permute(0, 3, 1, 2).contiguous()
-
-        val = PSNR_Metric(pred, gt)
-        ipdb.set_trace()
-        res.add(val, input.shape[0])
-
-        save_img(pred)
-        # ipdb.set_trace()
-
-        pbar.set_description('PSNR: {:.4f}'.format(res.item()))
-
-    return res.item()
 
 """test pred"""
 def save_img(pred):
     from torchvision.utils import save_image
+    """WIP"""
     save_image(pred[0], 'tmp.png')
     
-
 
 def check_vram():
     device = torch.device('cuda:0')

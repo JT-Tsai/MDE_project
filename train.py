@@ -13,8 +13,8 @@ import datasets
 import models
 import utils
 
+from PSNR import PSNR
 from SSIM import SSIM
-from utils import eval
 
 import ipdb
 
@@ -100,6 +100,55 @@ def train(train_loader, model, optimizer, bsize):
             pred = None; loss = None
 
     return train_loss.item()
+
+def eval(loader, model, eval_bsize = 5000):
+    model.eval()
+    psnr_avg = utils.Averager()
+    ssim_avg = utils.Averager()
+    PSNR_Metric = PSNR()
+    SSIM_Metric = SSIM()
+
+    pbar = tqdm(loader, leave = False, desc = 'eval')
+    ipdb.set_trace()
+    for batch in pbar:
+        input = batch['lr_image'].cuda()
+        gt = batch['hr_image'].cuda()
+        coord = batch['hr_coord'].cuda()
+        cell = batch['cell'].cuda()
+
+        with torch.no_grad():
+            model.gen_feat(input)
+            n = coord.shape[1]
+            ql = 0
+            preds = []
+            while ql < n:
+                qr = min(ql + eval_bsize, n)
+                pred = model.query_rgb(coord[:, ql:qr, :], 
+                    cell[:, ql:qr, :] if cell is not None else None)
+                preds.append(pred)
+                ql = qr
+            pred = torch.cat(preds, dim = 1)
+
+        # ipdb.set_trace()
+        h, w = batch['hr_shape']
+        shape = [input.shape[0], h, w, 3]
+        pred = pred.view(*shape) \
+            .permute(0, 3, 1, 2).contiguous()
+        gt = gt.view(*shape).permute(0, 3, 1, 2).contiguous()
+
+        psnr_val = PSNR_Metric(pred, gt)
+        ssim_val = SSIM_Metric(pred, gt)
+        # ipdb.set_trace()
+        psnr_avg.add(psnr_val.item(), input.shape[0])
+        ssim_avg.add(ssim_val.item(), input.shape[0])
+        
+        # cat with gt for visualization
+        # utils.save_img(pred)
+
+        pbar.set_description('PSNR: {:.4f}, SSIM: {:.4f}'
+                             .format(psnr_avg.item(), ssim_avg.item()))
+
+    return psnr_avg.item(), ssim_avg.item()
 
 
 def main(config_, save_path):
