@@ -14,7 +14,7 @@ import models
 import utils
 
 from SSIM import SSIM
-from utils import eval_psnr
+from utils import eval
 
 import ipdb
 
@@ -102,7 +102,6 @@ def train(train_loader, model, optimizer, bsize):
     return train_loss.item()
 
 
-
 def main(config_, save_path):
     global config, log, writer
     config = config_
@@ -119,7 +118,8 @@ def main(config_, save_path):
     epoch_max = config['epoch_max']
     epoch_val = config.get('epoch_val')
     epoch_save = config.get('epoch_save')
-    max_val_v = -1e18
+    max_psnr = -1e18
+    max_ssim = -1e18
 
     timer = utils.Timer()
 
@@ -152,13 +152,16 @@ def main(config_, save_path):
                        os.path.join(save_path, 'epoch-{}.pth'.format(epoch)))
         
         if (epoch_val is not None) and (epoch % epoch_val == 0):
-            val_res = eval_psnr(val_loader, model, eval_bsize = config['eval_bsize'])
+            psnr, ssim = eval(val_loader, model, eval_bsize = config['eval_bsize'])
 
-            log_info.append('val: psnr={:.4f}'.format(val_res))
-            writer.add_scalars('psnr', {'val': val_res}, epoch)
-            if val_res > max_val_v:
-                max_val_v = val_res
-                max_val_v = val_res
+            log_info.append('val: psnr={:.4f}'.format(psnr))
+            log_info.append('val: ssim={:.4f}'.format(ssim))
+            writer.add_scalars('psnr', {'val': psnr}, epoch)
+            writer.add_scalars('ssim', {'val': ssim}, epoch)
+
+            if psnr > max_psnr and ssim > max_ssim:
+                max_psnr = psnr
+                max_ssim = ssim
                 torch.save(sv_file, os.path.join(save_path, 'epoch-best.pth'))
         
         t = timer.t()
