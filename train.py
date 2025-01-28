@@ -101,7 +101,7 @@ def train(train_loader, model, optimizer, bsize):
 
     return train_loss.item()
 
-def eval(loader, model, eval_bsize = 5000):
+def eval(loader, model, epoch, eval_bsize = 5000):
     model.eval()
     psnr_avg = utils.Averager()
     ssim_avg = utils.Averager()
@@ -109,7 +109,6 @@ def eval(loader, model, eval_bsize = 5000):
     SSIM_Metric = SSIM()
 
     pbar = tqdm(loader, leave = False, desc = 'eval')
-    ipdb.set_trace()
     for batch in pbar:
         input = batch['lr_image'].cuda()
         gt = batch['hr_image'].cuda()
@@ -143,7 +142,9 @@ def eval(loader, model, eval_bsize = 5000):
         ssim_avg.add(ssim_val.item(), input.shape[0])
         
         # cat with gt for visualization
-        # utils.save_img(pred)
+        # Add enumerate index to track batch order
+        ipdb.set_trace()
+        utils.save_img(pred, gt, epoch=epoch, idx=pbar.n)
 
         pbar.set_description('PSNR: {:.4f}, SSIM: {:.4f}'
                              .format(psnr_avg.item(), ssim_avg.item()))
@@ -201,7 +202,7 @@ def main(config_, save_path):
                        os.path.join(save_path, 'epoch-{}.pth'.format(epoch)))
         
         if (epoch_val is not None) and (epoch % epoch_val == 0):
-            psnr, ssim = eval(val_loader, model, eval_bsize = config['eval_bsize'])
+            psnr, ssim = eval(val_loader, model, epoch = epoch, eval_bsize = config['eval_bsize'])
 
             log_info.append('val: psnr={:.4f}'.format(psnr))
             log_info.append('val: ssim={:.4f}'.format(ssim))
