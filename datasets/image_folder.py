@@ -23,14 +23,14 @@ class RealImageFolder(Dataset):
             file_list = sorted(os.listdir(dir_path), key=lambda x: float(x.replace('.JPG', '')))
             file_list = [os.path.join(dir_path, filename) for filename in file_list]
             # ipdb.set_trace()
-            
-            if first_k:
-                print(first_k)
-                file_list = file_list[:first_k]
 
             if file_list:
                 image_combination = list(itertools.combinations(file_list, 2))
                 self.data.extend(image_combination)
+            
+            if first_k is not None:
+                n = min(first_k, len(self.data))
+                self.data = self.data[:n]
 
     @lru_cache(maxsize = 100)
     def load_image(self, img_path):
