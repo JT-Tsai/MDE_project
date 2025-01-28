@@ -10,6 +10,8 @@ from torch.optim import SGD, Adam
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+import ipdb
+
 class Averager():
 
     def __init__(self):
@@ -118,6 +120,7 @@ def to_pixel_samples(img):
 
 def PSNR(sr, hr):
     mse = torch.mean((sr - hr) ** 2)
+    ipdb.set_trace()
     if mse == 0:
         return math.inf
     else:
@@ -147,7 +150,7 @@ def eval_psnr(loader, model, eval_bsize = 5000):
                 ql = qr
             pred = torch.cat(preds, dim = 1)
 
-
+        ipdb.set_trace()
         h, w = batch['hr_shape']
         shape = [input.shape[0], h, w, 3]
         pred = pred.view(*shape) \
