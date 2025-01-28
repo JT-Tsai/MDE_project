@@ -131,6 +131,7 @@ def eval_psnr(loader, model, eval_bsize = 5000):
     res = Averager()
     
     pbar = tqdm(loader, desc = 'eval')
+    ipdb.set_trace()
     for batch in pbar:
         input = batch['lr_image'].cuda()
         gt = batch['hr_image'].cuda()
