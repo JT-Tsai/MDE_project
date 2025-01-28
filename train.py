@@ -12,9 +12,9 @@ from torchinfo import summary
 import datasets
 import models
 import utils
-# WIP
+
 from SSIM import SSIM
-# from test import eval_psnr
+from utils import eval_psnr
 
 import ipdb
 
@@ -71,7 +71,7 @@ def prepare_training():
     
 def train(train_loader, model, optimizer, bsize):
     L1_loss = nn.L1Loss()
-    L2_loss = nn.MSELoss()
+    # L2_loss = nn.MSELoss()
     train_loss = utils.Averager()
 
     model.train()
@@ -85,29 +85,21 @@ def train(train_loader, model, optimizer, bsize):
         model.gen_feat(input)
         n = coord.shape[1]
         ql = 0
-        preds = []
         while ql < n:
             qr = min(ql + bsize, n)
             pred = model.query_rgb(coord[:, ql:qr, :], cell[:, ql:qr, :] if cell is not None else None)
-            ipdb.set_trace()
+            # ipdb.set_trace()
             loss = L1_loss(pred, gt[:, ql:qr, :])
-
+            train_loss.add(loss.item())
             optimizer.zero_grad()
             loss.backward()
-            ipdb.set_trace()
+            # ipdb.set_trace()
             optimizer.step()
             
-            # preds.append(pred)
             ql = qr
             pred = None; loss = None
-        # pred = torch.cat(preds, dim = 1)
 
-        ipdb.set_trace()
-
-
-
-    # loss = loss_fn
-    return None
+    return train_loss.item()
 
 
 
@@ -122,7 +114,7 @@ def main(config_, save_path):
     train_loader, val_loader = make_data_loader(config.get('dataset'))
 
     model, optimizer, epoch_start, lr_scheduler = prepare_training()
-    ipdb.set_trace()
+    # ipdb.set_trace()
 
     epoch_max = config['epoch_max']
     epoch_val = config.get('epoch_val')
@@ -137,7 +129,7 @@ def main(config_, save_path):
 
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
-        train_loss = train(train_loader, model, optimizer, bsize = config['pixel_bsize'])
+        train_loss = train(train_loader, model, optimizer, bsize = config['train_bsize'])
         if lr_scheduler is not None:
             lr_scheduler.step()
 
@@ -160,8 +152,7 @@ def main(config_, save_path):
                        os.path.join(save_path, 'epoch-{}.pth'.format(epoch)))
         
         if (epoch_val is not None) and (epoch % epoch_val == 0):
-            # func to calculate psnr (not yet implemented)
-            val_res = eval_psnr(val_loader, model)
+            val_res = eval_psnr(val_loader, model, eval_bsize = config['eval_bsize'])
 
             log_info.append('val: psnr={:.4f}'.format(val_res))
             writer.add_scalars('psnr', {'val': val_res}, epoch)
@@ -193,7 +184,7 @@ if __name__ == "__main__":
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader = yaml.FullLoader)
         if args.bsize is not None:
-            config['pixel_bsize'] = int(args.bsize)
+            config['train_bsize'] = int(args.bsize)
         print("config loaded")
     
     save_name = args.name

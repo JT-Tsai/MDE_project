@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as F
 from torch.optim import SGD, Adam
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 
 class Averager():
 
@@ -121,6 +122,51 @@ def PSNR(sr, hr):
         return math.inf
     else:
         return 20 * math.log10(255 / math.sqrt(mse))
+    
+def eval_psnr(loader, model, eval_bsize = 5000):
+    model.eval()
+
+    psnr = PSNR()
+    res = Averager()
+    
+    pbar = tqdm(loader, desc = 'eval')
+    for batch in pbar:
+        input = batch['lr_image'].cuda()
+        gt = batch['hr_image'].cuda()
+        coord = batch['hr_coord'].cuda()
+        cell = batch['cell'].cuda()
+
+        with torch.no_grad():
+            model.gen_feat(input)
+            n = coord.shape[1]
+            ql = 0
+            preds = []
+            while ql < n:
+                qr = min(ql + eval_bsize, n)
+                pred = model.query_rgb(coord[:, ql:qr, :], 
+                    cell[:, ql:qr, :] if cell is not None else None)
+                preds.append(pred)
+                ql = qr
+            pred = torch.cat(preds, dim = 1)
+
+
+        h, w = batch['hr_shape']
+        shape = [input.shape[0], h, w, 3]
+        pred = pred.view(*shape) \
+            .permute(0, 3, 1, 2).contiguous()
+        gt = gt.view(*shape).permute(0, 3, 1, 2).contiguous()
+
+        val = psnr(pred, gt)
+        res.add(val.item(), input.shape[0])
+
+        pbar.set_description('PSNR: {:.4f}'.format(res.item()))
+
+    return res.item()
+
+
+
+    
+
 
 def check_vram():
     device = torch.device('cuda:0')

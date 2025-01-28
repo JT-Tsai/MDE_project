@@ -33,6 +33,7 @@ class coz_wrapper(Dataset):
             "lr_image": self.dataset[idx]["lr_image"],
             "hr_image": flatten_hr,
             "hr_coord": hr_coord,
+            "hr_shape": tuple(hr_image.shape[-2:]),
             # "focal_length": self.dataset[idx]["focal_length"],
             "cell": cell if self.cell_decode else None
         }
@@ -60,6 +61,7 @@ if __name__ == "__main__":
 
     dataset = make(dataset_args)
     dataset = make(wrapper_args, args = {"dataset": dataset})
+    # w, h = dataset[0]["hr_shape"]
     ipdb.set_trace()
 
    

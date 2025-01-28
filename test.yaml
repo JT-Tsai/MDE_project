@@ -3,7 +3,7 @@ dataset:
     name: coz_folder
     args:
       root_path: "data/coz_data/train_LR"
-      # first_k: 100
+      first_k: 100
   wrapper:
     name: coz_wrapper
     args:
@@ -40,4 +40,5 @@ multi_step_lr:
 epoch_val: 1
 epoch_save: 100
 
-pixel_bsize: 900000
+train_bsize: 800000
+eval_bsize: 800000
