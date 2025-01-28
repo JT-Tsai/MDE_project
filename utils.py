@@ -125,8 +125,6 @@ def PSNR(sr, hr):
     
 def eval_psnr(loader, model, eval_bsize = 5000):
     model.eval()
-
-    psnr = PSNR()
     res = Averager()
     
     pbar = tqdm(loader, desc = 'eval')
@@ -156,7 +154,7 @@ def eval_psnr(loader, model, eval_bsize = 5000):
             .permute(0, 3, 1, 2).contiguous()
         gt = gt.view(*shape).permute(0, 3, 1, 2).contiguous()
 
-        val = psnr(pred, gt)
+        val = PSNR(pred, gt)
         res.add(val.item(), input.shape[0])
 
         pbar.set_description('PSNR: {:.4f}'.format(res.item()))
