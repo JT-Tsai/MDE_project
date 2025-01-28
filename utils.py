@@ -118,13 +118,13 @@ def to_pixel_samples(img):
     flatten_rgb = img.view(3, -1).permute(1, 0) # (pixels_num, 3_channel_dim)
     return coord, flatten_rgb
 
-def PSNR(sr, hr):
+def PSNR(sr, hr, PIXEL_MAX = 1.0):
     mse = torch.mean((sr - hr) ** 2)
     ipdb.set_trace()
     if mse == 0:
         return math.inf
     else:
-        return 20 * math.log10(255 / math.sqrt(mse))
+        return 20 * math.log10(1 / math.sqrt(mse))
     
 def eval_psnr(loader, model, eval_bsize = 5000):
     model.eval()
