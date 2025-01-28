@@ -35,9 +35,9 @@ def make_data_loader(spec):
     #     log('  {}: shape={}'.format(k, tuple(v.shape)))
 
     train_loader = DataLoader(train_dataset, batch_size=spec['batch_size'], 
-                        shuffle = True) #, pin_memory=True)
+                        shuffle = True)
     val_loader = DataLoader(val_dataset, batch_size=spec['batch_size'], 
-                        shuffle = False) #, pin_memory=True)
+                        shuffle = False)
     
     return train_loader, val_loader
 

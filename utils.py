@@ -10,6 +10,7 @@ from torch.optim import SGD, Adam
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from PSNR import PSNR
+from SSIM import SSIM
 
 import ipdb
 
@@ -124,6 +125,7 @@ def eval_psnr(loader, model, eval_bsize = 5000):
     model.eval()
     res = Averager()
     PSNR_Metric = PSNR()
+    SSIM_Metric = SSIM()
     pbar = tqdm(loader, leave = False, desc = 'eval')
     ipdb.set_trace()
     for batch in pbar:
@@ -145,7 +147,7 @@ def eval_psnr(loader, model, eval_bsize = 5000):
                 ql = qr
             pred = torch.cat(preds, dim = 1)
 
-        ipdb.set_trace()
+        # ipdb.set_trace()
         h, w = batch['hr_shape']
         shape = [input.shape[0], h, w, 3]
         pred = pred.view(*shape) \
@@ -153,10 +155,11 @@ def eval_psnr(loader, model, eval_bsize = 5000):
         gt = gt.view(*shape).permute(0, 3, 1, 2).contiguous()
 
         val = PSNR_Metric(pred, gt)
+        ipdb.set_trace()
         res.add(val, input.shape[0])
 
         save_img(pred)
-        ipdb.set_trace()
+        # ipdb.set_trace()
 
         pbar.set_description('PSNR: {:.4f}'.format(res.item()))
 
