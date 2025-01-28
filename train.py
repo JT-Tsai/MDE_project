@@ -74,6 +74,8 @@ def train(train_loader, model, optimizer, bsize):
     # L2_loss = nn.MSELoss()
     model.train()
     
+    iter = 0
+
     pbar = tqdm(train_loader, desc = 'train')
     for batch in pbar:
         input = batch['lr_image'].cuda()
@@ -91,8 +93,8 @@ def train(train_loader, model, optimizer, bsize):
             loss = L1_loss(pred, gt[:, ql:qr, :])
 
             pbar.set_description('loss: {:.4f}'.format(loss.item()))
-            writer.add_scalars('loss', {'train': loss}, optimizer.step_num)
-            
+            writer.add_scalars('loss', {'train': loss}, iter)
+            iter += 1
             optimizer.zero_grad()
             loss.backward()
             # ipdb.set_trace()
